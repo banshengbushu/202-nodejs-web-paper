@@ -6,7 +6,7 @@
   "scripts": {
     "babel-node": "babel-node",
     "start": "nodemon --exec npm run babel-node -- app.js",
-    "test": "mocha --recursive spec/",
+    "test": "mocha --recursive spec/paper-spec",
     "refreshMongo": "babel-node ./tool/mongo-tool.js"
   },
   "author": "",

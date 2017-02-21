@@ -12,13 +12,12 @@ class PaperController {
             Section.findOne({paper: paper._id})
               .populate('Homeworks')
               .exec((err, doc)=> {
-                const data = Object.assign({}, paper.toJSON(), {sections: doc});
+                const data = Object.assign({}, paper.toJSON(), {sections: doc.toJSON()});
                 callback(err, data);
               })
           }, done)
         })
       },
-
       totalCount: (done)=> {
         Paper.count(done)
       },
@@ -43,7 +42,7 @@ class PaperController {
         Section.findOne({paper: paper._id})
           .populate('homeworks')
           .exec((err, doc)=> {
-            const data = Object.assign({}, paper.toJSON(), {sections: doc});
+            const data = Object.assign({}, paper.toJSON(), {sections: doc.toJSON()});
             return done(err, data);
           })
       }
