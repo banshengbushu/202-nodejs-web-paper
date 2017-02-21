@@ -29,7 +29,7 @@ describe('PaperController', ()=> {
             title: '编程题',
             paper: '58ab9ed5e5227a2863b6ae64',
             __v: 0,
-            homeworks: ["58aade036842cc5181d09a35"]
+            homeworks: []
           }
         });
       })

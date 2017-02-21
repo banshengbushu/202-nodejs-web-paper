@@ -7,8 +7,18 @@ class PaperController {
   getAll(req, res, next) {
     async.series({
       papers: (done)=> {
-        Paper.find({}, done)
+        Paper.find({}, (err, docs)=> {
+          async.map(docs, (paper, callback)=> {
+            Section.findOne({paper: paper._id})
+              .populate('Homeworks')
+              .exec((err, doc)=> {
+                const data = Object.assign({}, paper.toJSON(), {sections: doc});
+                callback(err, data);
+              })
+          }, done)
+        })
       },
+
       totalCount: (done)=> {
         Paper.count(done)
       },
@@ -33,7 +43,7 @@ class PaperController {
         Section.findOne({paper: paper._id})
           .populate('homeworks')
           .exec((err, doc)=> {
-            const data = Object.assign({}, paper.toJSON(), {sections: doc.toJSON()});
+            const data = Object.assign({}, paper.toJSON(), {sections: doc});
             return done(err, data);
           })
       }
