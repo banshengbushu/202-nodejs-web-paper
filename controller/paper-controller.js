@@ -1,12 +1,13 @@
 const Paper = require('../model/paper');
+const Section = require('../model/section');
 const async = require('async');
 const httpCode = require('../config/httpCode');
 
-class Papercontroller {
+class PaperController {
   getAll(req, res, next) {
     async.series({
       papers: (done)=> {
-        Paper.find({}).exec(done)
+        Paper.find({}, done)
       },
       totalCount: (done)=> {
         Paper.count(done)
@@ -21,12 +22,30 @@ class Papercontroller {
 
   getOne(req, res, next) {
     const paperId = req.params.paperId;
-    Paper.findById(paperId, (err, doc)=> {
+    async.waterfall([
+      (done)=> {
+        Paper.findById(paperId, done)
+      },
+      (paper, done)=> {
+        if (!paper) {
+          done(true, null);
+        }
+        Section.findOne({paper: paper._id})
+          .populate('homeworks')
+          .exec((err, doc)=> {
+            const data = Object.assign({}, paper.toJSON(), {sections: doc.toJSON()});
+            return done(err, data);
+          })
+      }
+    ], (err, result) => {
+      if (err === true) {
+        return res.sendStatus(httpCode.NOT_FOUND);
+      }
       if (err) {
         return next(err);
       }
-      res.status(httpCode.OK).send(doc);
-    })
+      return res.status(httpCode.OK).send(result);
+    });
   }
 
   create(req, res, next) {
@@ -34,22 +53,36 @@ class Papercontroller {
       if (err) {
         return next(err);
       }
-      const uri = `homeworks/${doc._id}`;
-      return res.status(httpCode.CREATED).send(uri);
+      return res.status(httpCode.CREATED).send({uri: `papers/${doc._id}`});
     })
   }
 
   delete(req, res, next) {
     const paperId = req.params.paperId;
-    Paper.findByIdAndRemove(paperId, (err, doc)=> {
-      if (!doc) {
-        return res.status(httpCode.NOT_FOUND);
+    async.waterfall([
+      (done)=> {
+        Paper.findByIdAndRemove(paperId, done)
+      },
+      (docs, done)=> {
+        if (!docs) {
+          return done(true, null);
+        }
+        Section.find({}, done)
+      },
+      (docs, done)=> {
+        const sections = docs.filter(section => section.paper.toJSON() === paperId)
+        Section.remove(sections, done)
+      }
+    ], (err)=> {
+      if (err === true) {
+        return res.sendStatus(httpCode.NOT_FOUND);
       }
       if (err) {
         return next(err);
       }
       return res.sendStatus(httpCode.NO_CONTENT);
-    })
+
+    });
   }
 
   update(req, res, next) {
@@ -66,4 +99,5 @@ class Papercontroller {
   }
 }
 
-module.exports = Papercontroller;
+
+module.exports = PaperController;

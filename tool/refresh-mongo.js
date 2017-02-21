@@ -1,8 +1,12 @@
 const rawData = require('../raw-data/fixture');
 const Homework = require('../model/homework');
+const Paper = require('../model/paper');
+const Section = require('../model/section');
 
 const modelMap = {
-  Homework
+  Homework,
+  Section,
+  Paper
 };
 
 const docs = Object.keys(rawData);
